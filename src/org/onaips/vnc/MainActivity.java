@@ -58,9 +58,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.ads.AdRequest;
-import com.google.ads.AdSize;
-import com.google.ads.AdView;
+import android.text.TextUtils;
 
 public class MainActivity extends Activity 
 {      
@@ -73,7 +71,7 @@ public class MainActivity extends Activity
 	static final int APP_ID = 123;
 	static final String VNC_LOG ="VNCserver";
 	
-	private AdView adView = null;
+//	private AdView adView = null;
 	private ServerManager s = null;
 	private Animation buttonAnimation=null;
 	private SharedPreferences preferences;
@@ -126,8 +124,8 @@ public class MainActivity extends Activity
 	@Override  
 	protected void onDestroy()
 	{
-		if (adView != null)
-			adView.destroy();
+//		if (adView != null)
+//			adView.destroy();
 		super.onDestroy();
 		unregisterReceiver(mReceiver);
 	}
@@ -179,7 +177,7 @@ public class MainActivity extends Activity
 			startDialog.show();
 		}
 
-		showInitialScreen(false);
+//		showInitialScreen(false);
 		setStateLabels(ServerManager.isServerRunning());
 
 		// register wifi event receiver
@@ -190,8 +188,8 @@ public class MainActivity extends Activity
 		{
 
 			// Look up the AdView as a resource and load a request.
-			adView = (AdView)this.findViewById(R.id.adView);
-			adView.loadAd(new AdRequest());
+//			adView = (AdView)this.findViewById(R.id.adView);
+//			adView.loadAd(new AdRequest());
 		} 
 
 		findViewById(R.id.Button01).setOnClickListener(new OnClickListener() {
@@ -365,24 +363,76 @@ public class MainActivity extends Activity
 
 	} 
 
+//	public String getIpAddress() {
+//		try {
+//			String ipv4;
+//			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+//				NetworkInterface intf = en.nextElement();
+//				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+//					InetAddress inetAddress = enumIpAddr.nextElement();
+//					if (!inetAddress.isLoopbackAddress()) {
+//						if (!inetAddress.isLoopbackAddress() && InetAddressUtils.isIPv4Address(ipv4=inetAddress.getHostAddress())) 
+//							return ipv4;
+//					}
+//				}
+//			}
+//		} catch (SocketException ex) {
+//			log(ex.toString());
+//		}
+//		return "";
+//	}
+
 	public String getIpAddress() {
 		try {
-			String ipv4;
-			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress()) {
-						if (!inetAddress.isLoopbackAddress() && InetAddressUtils.isIPv4Address(ipv4=inetAddress.getHostAddress())) 
-							return ipv4;
-					}
-				}
-			}
-		} catch (SocketException ex) {
-			log(ex.toString());
-		}
-		return "";
+            String[] ips = getAllLocalIpAddress();
+
+            for (String ip : ips) {
+                if (ip.startsWith("192.")) {
+                    return ip;
+                }
+            }
+        } catch (Exception ex) {
+            return "";
+        }
+        return "";
 	}
+
+	///
+	private String[] getAllLocalIpAddress() {
+        StringBuffer ips = new StringBuffer();
+        String sRe;
+        try {
+            Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+            if (en == null) return null;
+
+            for (; en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                if (intf == null) continue;
+
+                Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
+                if (enumIpAddr == null) continue;
+
+                for (; enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (inetAddress == null || inetAddress.getHostAddress() == null) continue;
+
+                    sRe = inetAddress.getHostAddress().toString();
+                    if (TextUtils.isEmpty(sRe)) continue;
+
+                    ips.append(sRe).append(';');
+                }
+            }
+        } catch (SocketException ex) {
+            return null;
+        }
+        if (ips.length() > 0) {
+            return ips.toString().split(";");
+        } else {
+            return null;
+        }
+    }
+	///
+	
 
 	public void restartServer()
 	{
