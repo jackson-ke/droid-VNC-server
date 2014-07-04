@@ -23,13 +23,17 @@ int inputfd = -1;
 // keyboard code modified from remote input by http://www.math.bme.hu/~morap/RemoteInput/
 
 // q,w,e,r,t,y,u,i,o,p,a,s,d,f,g,h,j,k,l,z,x,c,v,b,n,m
-int qwerty[] = {30,48,46,32,18,33,34,35,23,36,37,38,50,49,24,25,16,19,31,20,22,47,17,45,21,44};
+static int qwerty[] = {30,48,46,32,18,33,34,35,23,36,37,38,50,49,24,25,16,19,31,20,22,47,17,45,21,44};
 //  ,!,",#,$,%,&,',(,),*,+,,,-,.,/
-int spec1[] = {57,2,40,4,5,6,8,40,10,11,9,13,51,12,52,52};
-int spec1sh[] = {0,1,1,1,1,1,1,0,1,1,1,1,0,0,0,1};
+//int spec1[] = {57,2,40,4,5,6,8,40,10,11,9,13,51,12,52,52};
+static int spec1[] = {57,2,40,4,5,6,8,40,10,11,9,13,51,12,52,53};
+static int spec1sh[] = {0,1,1,1,1,1,1,0,1,1,1,1,0,0,0,1};
 // :,;,<,=,>,?,@
-int spec2[] = {39,39,227,13,228,53,215};
-int spec2sh[] = {1,0,1,1,1,1,0};
+//int spec2[] = {39,39,227,13,228,53,215};
+//int spec2sh[] = {1,0,1,1,1,1,0};
+int spec2[] = {39,39,51,13,52,53,3};
+int spec2sh[] = {1,0,1,0,1,1,1};
+
 // [,\,],^,_,`
 int spec3[] = {26,43,27,7,12,399};
 int spec3sh[] = {0,0,0,1,1,0};
@@ -47,12 +51,20 @@ void initInput()
     1, /* Product id. */
     1 /* Version id. */
   }; 
-
-  if((inputfd = suinput_open("Generic", &id)) == -1)
+  
+  if((inputfd = suinput_open("qwerty", &id)) == -1)
   {
-    L("cannot create virtual kbd device.\n");
-    sendMsgToGui("~SHOW|Cannot create virtual input device!\n");
-    //  exit(EXIT_FAILURE); do not exit, so we still can see the framebuffer
+	L("cannot create virtual kbd device[qwerty].\n");
+	if((inputfd = suinput_open("Generic", &id)) == -1){
+		L("cannot create virtual kbd device.\n");
+		sendMsgToGui("~SHOW|Cannot create virtual input device!\n");
+	}
+	else{
+		L("Success to create virtual kbd device[Generic]\n");
+	}
+  }
+  else{
+	L("Success to create virtual kbd device[qwerty]\n");
   }
 }
 
@@ -217,6 +229,8 @@ void keyEvent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 
       if (alt) suinput_release(inputfd, 56); //left alt
       if (sh) suinput_release(inputfd, 42); //left shift
+	  
+	  suinput_write(inputfd, EV_SYN, SYN_REPORT, 0);
     }
     else
     ;//ret=suinput_release(inputfd,code);
